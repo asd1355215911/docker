@@ -1,4 +1,4 @@
-// +build exclude_graphdriver_aufs
+// +build exclude_graphdriver_aufs,!windows
 
 package daemon
 

@@ -1,16 +1,18 @@
+// +build !windows
+
 /*
 
 aufs driver directory structure
 
 .
 ├── layers // Metadata of layers
-│   ├── 1
-│   ├── 2
-│   └── 3
+│   ├── 1
+│   ├── 2
+│   └── 3
 ├── diff  // Content of the layer
-│   ├── 1  // Contains layers that need to be mounted for the id
-│   ├── 2
-│   └── 3
+│   ├── 1  // Contains layers that need to be mounted for the id
+│   ├── 2
+│   └── 3
 └── mnt    // Mount points for the rw layers to be mounted
     ├── 1
     ├── 2

@@ -264,7 +264,7 @@ func (daemon *Daemon) register(container *Container, updateSuffixarray bool) err
 		// We only have to handle this for lxc because the other drivers will ensure that
 		// no processes are left when docker dies
 		if container.ExecDriver == "" || strings.Contains(container.ExecDriver, "lxc") {
-			lxc.KillLxc(container.ID, 9)
+			KillIfLxc(container.ID)
 		} else {
 			// use the current driver and ensure that the container is dead x.x
 			cmd := &execdriver.Command{

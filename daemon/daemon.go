@@ -906,6 +906,14 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 		}
 	}
 
+	// TODO Windows. This driver does not yet exist. Name TBC.
+	if runtime.GOOS == "windows" {
+		volumesDriver, err := graphdriver.GetDriver("windows", config.Root, config.GraphOptions)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	volumes, err := volumes.NewRepository(filepath.Join(config.Root, "volumes"), volumesDriver)
 	if err != nil {
 		return nil, err

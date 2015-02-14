@@ -5,7 +5,6 @@ import (
 
 	"github.com/docker/docker/api"
 	apiserver "github.com/docker/docker/api/server"
-	"github.com/docker/docker/daemon/networkdriver/bridge"
 	"github.com/docker/docker/dockerversion"
 	"github.com/docker/docker/engine"
 	"github.com/docker/docker/events"
@@ -52,9 +51,6 @@ func remote(eng *engine.Engine) error {
 //
 // These components should be broken off into plugins of their own.
 //
-func daemon(eng *engine.Engine) error {
-	return eng.Register("init_networkdriver", bridge.InitDriver)
-}
 
 // builtins jobs independent of any subsystem
 func dockerVersion(job *engine.Job) engine.Status {

@@ -1,7 +1,7 @@
-// +build !linux
+// +build !linux,!windows
 
 package lxc
 
 func finalizeNamespace(args *InitArgs) error {
-	panic("Not supported on darwin")
+	panic("Not supported on this platform")
 }

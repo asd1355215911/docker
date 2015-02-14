@@ -9,10 +9,10 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"syscall"
 
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/reexec"
+	"github.com/docker/docker/pkg/system"
 )
 
 type applyLayerResponse struct {
@@ -28,8 +28,12 @@ func applyLayer() {
 	}
 
 	// We need to be able to set any perms
-	oldmask := syscall.Umask(0)
-	defer syscall.Umask(oldmask)
+	oldmask, err := system.Umask(0)
+	if err != nil {
+		fatal(err)
+	}
+
+	defer system.Umask(oldmask)
 	tmpDir, err := ioutil.TempDir("/", "temp-docker-extract")
 	if err != nil {
 		fatal(err)

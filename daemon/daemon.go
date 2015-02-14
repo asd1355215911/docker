@@ -21,7 +21,6 @@ import (
 	"github.com/docker/docker/daemon/execdriver"
 	"github.com/docker/docker/daemon/execdriver/execdrivers"
 	"github.com/docker/docker/daemon/graphdriver"
-	_ "github.com/docker/docker/daemon/networkdriver/bridge"
 	"github.com/docker/docker/daemon/networkdriver/portallocator"
 	"github.com/docker/docker/dockerversion"
 	"github.com/docker/docker/engine"

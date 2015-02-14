@@ -3,21 +3,20 @@
 package daemon
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
-	"strings"
-	"sync"
+	//	"fmt"
+	//	"io"
+	//	"io/ioutil"
+	//	"strings"
+	//	"sync"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/docker/daemon/execdriver/lxc"
+	//log "github.com/Sirupsen/logrus"
+	//"github.com/docker/docker/daemon/execdriver"
 	"github.com/docker/docker/engine"
-	"github.com/docker/docker/pkg/broadcastwriter"
-	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/promise"
-	"github.com/docker/docker/runconfig"
-	"github.com/docker/docker/utils"
+	//"github.com/docker/docker/pkg/broadcastwriter"
+	//"github.com/docker/docker/pkg/ioutils"
+	//"github.com/docker/docker/pkg/promise"
+	//"github.com/docker/docker/runconfig"
+	//"github.com/docker/docker/utils"
 )
 
 func (d *Daemon) ContainerExecCreate(job *engine.Job) engine.Status {

@@ -22,7 +22,6 @@ import (
 	"github.com/docker/docker/daemon/execdriver/execdrivers"
 	"github.com/docker/docker/daemon/execdriver/lxc"
 	"github.com/docker/docker/daemon/graphdriver"
-	_ "github.com/docker/docker/daemon/graphdriver/vfs"
 	_ "github.com/docker/docker/daemon/networkdriver/bridge"
 	"github.com/docker/docker/daemon/networkdriver/portallocator"
 	"github.com/docker/docker/dockerversion"
@@ -900,9 +899,11 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 		return nil, err
 	}
 
-	volumesDriver, err := graphdriver.GetDriver("vfs", config.Root, config.GraphOptions)
-	if err != nil {
-		return nil, err
+	if runtime.GOOS == "linux" {
+		volumesDriver, err := graphdriver.GetDriver("vfs", config.Root, config.GraphOptions)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	volumes, err := volumes.NewRepository(filepath.Join(config.Root, "volumes"), volumesDriver)

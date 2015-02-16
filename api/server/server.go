@@ -1527,7 +1527,6 @@ type Server interface {
 // off a go routine to setup a serving http.Server for each.
 func ServeApi(job *engine.Job) engine.Status {
 
-	log.Infof("JJH Debug %s", job.Name)
 	if len(job.Args) == 0 {
 		return job.Errorf("usage: %s PROTO://ADDR [PROTO://ADDR ...]", job.Name)
 	}
@@ -1538,36 +1537,23 @@ func ServeApi(job *engine.Job) engine.Status {
 	activationLock = make(chan struct{})
 
 	for _, protoAddr := range protoAddrs {
-		log.Infof("JJH Debug %s", protoAddr)
-
 		protoAddrParts := strings.SplitN(protoAddr, "://", 2)
-		log.Infof("JJH Debug %d", len(protoAddrParts))
 		if len(protoAddrParts) != 2 {
 			return job.Errorf("usage: %s PROTO://ADDR [PROTO://ADDR ...]", job.Name)
 		}
-		log.Infof("JJH A")
 		go func() {
-			log.Infof("JJH B")
 			log.Infof("Listening for HTTP on %s (%s)", protoAddrParts[0], protoAddrParts[1])
-			log.Infof("JJH C")
 			srv, err := NewServer(protoAddrParts[0], protoAddrParts[1], job)
-			log.Infof("JJH D")
 			if err != nil {
-				log.Infof("JJH E")
 				chErrors <- err
 				return
 			}
-			log.Infof("JJH F")
 			chErrors <- srv.Serve()
-			log.Infof("JJH G")
 		}()
 	}
-	log.Infof("JJH H")
 
 	for i := 0; i < len(protoAddrs); i++ {
-		log.Infof("JJH I %d", i)
 		err := <-chErrors
-		log.Infof("JJH J %s", err)
 		if err != nil {
 			return job.Error(err)
 		}

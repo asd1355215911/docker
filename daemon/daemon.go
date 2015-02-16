@@ -828,7 +828,7 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 	if runtime.GOOS != "linux" && runtime.GOOS != "windows" {
 		return nil, fmt.Errorf("The Docker daemon is only supported on Linux and Windows")
 	}
-	if os.Geteuid() != 0 {
+	if os.Geteuid() != 0 && runtime.GOOS == "linux" {
 		return nil, fmt.Errorf("The Docker daemon needs to be run as root")
 	}
 	if err := checkKernel(); err != nil {

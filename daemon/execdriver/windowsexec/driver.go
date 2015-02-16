@@ -1,5 +1,6 @@
 // +build windows
 
+// This is a temporary shell driver only. Needs implementing.
 package windowsexec
 
 import (
@@ -7,9 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	//	"strings"
 
-	//	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/daemon/execdriver"
 	"github.com/docker/docker/pkg/term"
 )
@@ -18,11 +17,6 @@ const (
 	DriverName = "windowsexec"
 	Version    = "0.1"
 )
-
-//type activeContainer struct {
-//	container *libcontainer.Config
-//	cmd       *exec.Cmd
-//}
 
 type driver struct {
 	root     string
@@ -42,6 +36,10 @@ func NewDriver(root, initPath string) (*driver, error) {
 	}, nil
 }
 
+func (d *driver) Exec(c *execdriver.Command, processConfig *execdriver.ProcessConfig, pipes *execdriver.Pipes, startCallback execdriver.StartCallback) (int, error) {
+	return 0, nil
+}
+
 func (d *driver) Run(c *execdriver.Command, pipes *execdriver.Pipes, startCallback execdriver.StartCallback) (execdriver.ExitStatus, error) {
 	// Not yet implemented
 	return execdriver.ExitStatus{ExitCode: -1}, nil
@@ -52,23 +50,11 @@ func (d *driver) Kill(p *execdriver.Command, sig int) error {
 }
 
 func (d *driver) Pause(c *execdriver.Command) error {
-	//active := d.activeContainers[c.ID]
-	//if active == nil {
-	//	return fmt.Errorf("active container for %s does not exist", c.ID)
-	//}
-	//active.container.Cgroups.Freezer = "FROZEN"
-	//if systemd.UseSystemd() {
-	//	return systemd.Freeze(active.container.Cgroups, active.container.Cgroups.Freezer)
-	//}
-	//return fs.Freeze(active.container.Cgroups, active.container.Cgroups.Freezer)
+
 	return fmt.Errorf("windowsexec: Pause() not implemented")
 }
 
 func (d *driver) Unpause(c *execdriver.Command) error {
-	//active := d.activeContainers[c.ID]
-	//if active == nil {
-	//	return fmt.Errorf("active container for %s does not exist", c.ID)
-	//}
 	return fmt.Errorf("windowsexec: Unpause() not implemented")
 }
 
@@ -78,18 +64,7 @@ func (d *driver) Terminate(p *execdriver.Command) error {
 
 func (i *info) IsRunning() bool {
 	var running bool
-
-	//output, err := i.driver.getInfo(i.ID)
-	//if err != nil {
-	//	log.Errorf("Error getting info for Windows container %s: %s (%s)", i.ID, err, output)
-	//	return false
-	//}
-	//if strings.Contains(string(output), "RUNNING") {
-	//	running = true
-	//}
-
 	running = true
-
 	return running
 }
 

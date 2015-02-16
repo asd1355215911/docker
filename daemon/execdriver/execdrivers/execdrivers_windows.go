@@ -4,10 +4,10 @@ package execdrivers
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/docker/docker/daemon/execdriver"
 	"github.com/docker/docker/daemon/execdriver/windowsexec"
+	"github.com/docker/docker/pkg/sysinfo"
 )
 
 func NewDriver(name, root, initPath string, sysInfo *sysinfo.SysInfo) (execdriver.Driver, error) {

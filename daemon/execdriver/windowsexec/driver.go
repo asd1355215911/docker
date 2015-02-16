@@ -1,13 +1,17 @@
 // +build windows
 
-package native
+package windowsexec
 
 import (
-	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	//	"strings"
 
-	log "github.com/Sirupsen/logrus"
-    "github.com/docker/docker/daemon/execdriver"
+	//	log "github.com/Sirupsen/logrus"
+	"github.com/docker/docker/daemon/execdriver"
+	"github.com/docker/docker/pkg/term"
 )
 
 const (
@@ -15,28 +19,32 @@ const (
 	Version    = "0.1"
 )
 
-type activeContainer struct {
-	container *libcontainer.Config
-	cmd       *exec.Cmd
-}
+//type activeContainer struct {
+//	container *libcontainer.Config
+//	cmd       *exec.Cmd
+//}
 
 type driver struct {
-	root             string
-	initPath         string
+	root     string
+	initPath string
+}
+
+type info struct {
+	ID     string
+	driver *driver
 }
 
 func NewDriver(root, initPath string) (*driver, error) {
 
-    return &driver {
-		root:		root,
-		initPath:	initPath	
+	return &driver{
+		root:     root,
+		initPath: initPath,
 	}, nil
 }
 
-
 func (d *driver) Run(c *execdriver.Command, pipes *execdriver.Pipes, startCallback execdriver.StartCallback) (execdriver.ExitStatus, error) {
-    // Not yet implemented
-	return execdriver.ExitStatus{ExitCode: -1}, err
+	// Not yet implemented
+	return execdriver.ExitStatus{ExitCode: -1}, nil
 }
 
 func (d *driver) Kill(p *execdriver.Command, sig int) error {
@@ -44,27 +52,45 @@ func (d *driver) Kill(p *execdriver.Command, sig int) error {
 }
 
 func (d *driver) Pause(c *execdriver.Command) error {
-	active := d.activeContainers[c.ID]
-	if active == nil {
-		return fmt.Errorf("active container for %s does not exist", c.ID)
-	}
-	active.container.Cgroups.Freezer = "FROZEN"
-	if systemd.UseSystemd() {
-		return systemd.Freeze(active.container.Cgroups, active.container.Cgroups.Freezer)
-	}
-	return fs.Freeze(active.container.Cgroups, active.container.Cgroups.Freezer)
+	//active := d.activeContainers[c.ID]
+	//if active == nil {
+	//	return fmt.Errorf("active container for %s does not exist", c.ID)
+	//}
+	//active.container.Cgroups.Freezer = "FROZEN"
+	//if systemd.UseSystemd() {
+	//	return systemd.Freeze(active.container.Cgroups, active.container.Cgroups.Freezer)
+	//}
+	//return fs.Freeze(active.container.Cgroups, active.container.Cgroups.Freezer)
+	return fmt.Errorf("windowsexec: Pause() not implemented")
 }
 
 func (d *driver) Unpause(c *execdriver.Command) error {
-	active := d.activeContainers[c.ID]
-	if active == nil {
-		return fmt.Errorf("active container for %s does not exist", c.ID)
-	}
+	//active := d.activeContainers[c.ID]
+	//if active == nil {
+	//	return fmt.Errorf("active container for %s does not exist", c.ID)
+	//}
 	return fmt.Errorf("windowsexec: Unpause() not implemented")
 }
 
 func (d *driver) Terminate(p *execdriver.Command) error {
 	return fmt.Errorf("windowsexec: Terminate() not implemented")
+}
+
+func (i *info) IsRunning() bool {
+	var running bool
+
+	//output, err := i.driver.getInfo(i.ID)
+	//if err != nil {
+	//	log.Errorf("Error getting info for Windows container %s: %s (%s)", i.ID, err, output)
+	//	return false
+	//}
+	//if strings.Contains(string(output), "RUNNING") {
+	//	running = true
+	//}
+
+	running = true
+
+	return running
 }
 
 func (d *driver) Info(id string) execdriver.Info {
@@ -79,16 +105,15 @@ func (d *driver) Name() string {
 }
 
 func (d *driver) GetPidsForContainer(id string) ([]int, error) {
-	return fmt.Errorf("GetPidsForContainer: Kill() not implemented")
+	return nil, fmt.Errorf("GetPidsForContainer: GetPidsForContainer() not implemented")
 }
-
 
 func (d *driver) Clean(id string) error {
 	return fmt.Errorf("windowsexec: Clean() not implemented")
 }
 
 func (d *driver) Stats(id string) (*execdriver.ResourceStats, error) {
-	return fmt.Errorf("windowsexec: Stats() not implemented")
+	return nil, fmt.Errorf("windowsexec: Stats() not implemented")
 }
 
 type TtyConsole struct {
@@ -96,7 +121,7 @@ type TtyConsole struct {
 }
 
 func NewTtyConsole(processConfig *execdriver.ProcessConfig, pipes *execdriver.Pipes) (*TtyConsole, error) {
-	return nil,nil
+	return nil, nil
 }
 
 func (t *TtyConsole) Master() *os.File {

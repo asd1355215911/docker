@@ -2,6 +2,8 @@ package daemon
 
 import (
 	"net"
+	"os"
+	"runtime"
 
 	"github.com/docker/docker/daemon/networkdriver"
 	"github.com/docker/docker/opts"
@@ -51,8 +53,16 @@ type Config struct {
 // Subsequent calls to `flag.Parse` will populate config with values parsed
 // from the command-line.
 func (config *Config) InstallFlags() {
-	flag.StringVar(&config.Pidfile, []string{"p", "-pidfile"}, "/var/run/docker.pid", "Path to use for daemon PID file")
-	flag.StringVar(&config.Root, []string{"g", "-graph"}, "/var/lib/docker", "Root of the Docker runtime")
+
+	if runtime.GOOS == "windows" {
+		flag.StringVar(&config.Pidfile, []string{"p", "-pidfile"}, os.Getenv("temp")+"docker.pid", "Path to use for daemon PID file")
+		flag.StringVar(&config.Root, []string{"g", "-graph"}, os.Getenv("temp")+"/docker", "Path to use as the root of the Docker runtime")
+
+	} else {
+		flag.StringVar(&config.Pidfile, []string{"p", "-pidfile"}, "/var/run/docker.pid", "Path to use for daemon PID file")
+		flag.StringVar(&config.Root, []string{"g", "-graph"}, "/var/lib/docker", "Path to use as the root of the Docker runtime")
+	}
+
 	flag.BoolVar(&config.AutoRestart, []string{"#r", "#-restart"}, true, "--restart on the daemon has been deprecated in favor of --restart policies on docker run")
 	flag.BoolVar(&config.EnableIptables, []string{"#iptables", "-iptables"}, true, "Enable addition of iptables rules")
 	flag.BoolVar(&config.EnableIpForward, []string{"#ip-forward", "-ip-forward"}, true, "Enable net.ipv4.ip_forward")

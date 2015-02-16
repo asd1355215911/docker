@@ -897,19 +897,18 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 		return nil, err
 	}
 
-	if runtime.GOOS == "linux" {
-		volumesDriver, err := graphdriver.GetDriver("vfs", config.Root, config.GraphOptions)
-		if err != nil {
-			return nil, err
-		}
+	driverName := ""
+	switch runtime.GOOS {
+	case "linux":
+		driverName = "vfs"
+	case "windows":
+		// TODO Windows. This driver does not yet exist. Name TBC.
+		driverName = "windows"
 	}
 
-	// TODO Windows. This driver does not yet exist. Name TBC.
-	if runtime.GOOS == "windows" {
-		volumesDriver, err := graphdriver.GetDriver("windows", config.Root, config.GraphOptions)
-		if err != nil {
-			return nil, err
-		}
+	volumesDriver, err := graphdriver.GetDriver(driverName, config.Root, config.GraphOptions)
+	if err != nil {
+		return nil, err
 	}
 
 	volumes, err := volumes.NewRepository(filepath.Join(config.Root, "volumes"), volumesDriver)

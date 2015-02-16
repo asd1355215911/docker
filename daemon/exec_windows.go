@@ -6,17 +6,17 @@ import (
 	//	"fmt"
 	//	"io"
 	//	"io/ioutil"
-	//	"strings"
+	"strings"
 	//	"sync"
 
 	//log "github.com/Sirupsen/logrus"
-	//"github.com/docker/docker/daemon/execdriver"
+	"github.com/docker/docker/daemon/execdriver"
 	"github.com/docker/docker/engine"
 	//"github.com/docker/docker/pkg/broadcastwriter"
 	//"github.com/docker/docker/pkg/ioutils"
 	//"github.com/docker/docker/pkg/promise"
-	//"github.com/docker/docker/runconfig"
-	//"github.com/docker/docker/utils"
+	"github.com/docker/docker/runconfig"
+	"github.com/docker/docker/utils"
 )
 
 func (d *Daemon) ContainerExecCreate(job *engine.Job) engine.Status {

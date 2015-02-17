@@ -3,13 +3,9 @@
 package daemon
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
 	"strings"
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/daemon/execdriver"
 	"github.com/docker/docker/daemon/execdriver/lxc"
 	"github.com/docker/docker/engine"

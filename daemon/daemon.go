@@ -831,8 +831,12 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 	if os.Geteuid() != 0 && runtime.GOOS == "linux" {
 		return nil, fmt.Errorf("The Docker daemon needs to be run as root")
 	}
-	if err := checkKernel(); err != nil {
-		return nil, err
+
+	// TODO Windows. Might need a different version check for kernel here.
+	if runtime.GOOS != "windows" {
+		if err := checkKernel(); err != nil {
+			return nil, err
+		}
 	}
 
 	// set up the TempDir to use a canonical path

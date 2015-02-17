@@ -57,10 +57,11 @@ func (config *Config) InstallFlags() {
 	if runtime.GOOS == "windows" {
 		flag.StringVar(&config.Pidfile, []string{"p", "-pidfile"}, os.Getenv("temp")+"docker.pid", "Path to use for daemon PID file")
 		flag.StringVar(&config.Root, []string{"g", "-graph"}, os.Getenv("temp")+"/docker", "Path to use as the root of the Docker runtime")
-
+		flag.StringVar(&config.ExecDriver, []string{"e", "-exec-driver"}, "windows", "Exec driver to use")
 	} else {
 		flag.StringVar(&config.Pidfile, []string{"p", "-pidfile"}, "/var/run/docker.pid", "Path to use for daemon PID file")
 		flag.StringVar(&config.Root, []string{"g", "-graph"}, "/var/lib/docker", "Path to use as the root of the Docker runtime")
+		flag.StringVar(&config.ExecDriver, []string{"e", "-exec-driver"}, "native", "Exec driver to use")
 	}
 
 	flag.BoolVar(&config.AutoRestart, []string{"#r", "#-restart"}, true, "--restart on the daemon has been deprecated in favor of --restart policies on docker run")
@@ -74,7 +75,6 @@ func (config *Config) InstallFlags() {
 	flag.StringVar(&config.FixedCIDRv6, []string{"-fixed-cidr-v6"}, "", "IPv6 subnet for fixed IPs")
 	flag.BoolVar(&config.InterContainerCommunication, []string{"#icc", "-icc"}, true, "Enable inter-container communication")
 	flag.StringVar(&config.GraphDriver, []string{"s", "-storage-driver"}, "", "Storage driver to use")
-	flag.StringVar(&config.ExecDriver, []string{"e", "-exec-driver"}, "native", "Exec driver to use")
 	flag.BoolVar(&config.EnableSelinuxSupport, []string{"-selinux-enabled"}, false, "Enable selinux support")
 	flag.IntVar(&config.Mtu, []string{"#mtu", "-mtu"}, 0, "Set the containers network MTU")
 	flag.StringVar(&config.SocketGroup, []string{"G", "-group"}, "docker", "Group for the unix socket")

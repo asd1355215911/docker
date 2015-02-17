@@ -13,8 +13,6 @@ import (
 	"github.com/docker/docker/pkg/broadcastwriter"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/promise"
-	//JJH	"github.com/docker/docker/runconfig"
-	//JJH	"github.com/docker/docker/utils"
 )
 
 type execConfig struct {

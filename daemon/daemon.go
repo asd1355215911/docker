@@ -965,24 +965,30 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 		return nil, err
 	}
 
-	localCopy := path.Join(config.Root, "init", fmt.Sprintf("dockerinit-%s", dockerversion.VERSION))
-	sysInitPath := utils.DockerInitPath(localCopy)
-	if sysInitPath == "" {
-		return nil, fmt.Errorf("Could not locate dockerinit: This usually means docker was built incorrectly. See http://docs.docker.com/contributing/devenvironment for official build instructions.")
-	}
+	// Temporary workaround for Windows daemon
+	sysInitPath := ""
+	if runtime.GOOS != "windows" {
+		localCopy := path.Join(config.Root, "init", fmt.Sprintf("dockerinit-%s", dockerversion.VERSION))
+		sysInitPath = utils.DockerInitPath(localCopy)
+		if sysInitPath == "" {
+			return nil, fmt.Errorf("Could not locate dockerinit: This usually means docker was built incorrectly. See http://docs.docker.com/contributing/devenvironment for official build instructions.")
+		}
 
-	if sysInitPath != localCopy {
-		// When we find a suitable dockerinit binary (even if it's our local binary), we copy it into config.Root at localCopy for future use (so that the original can go away without that being a problem, for example during a package upgrade).
-		if err := os.Mkdir(path.Dir(localCopy), 0700); err != nil && !os.IsExist(err) {
-			return nil, err
+		if sysInitPath != localCopy {
+			// When we find a suitable dockerinit binary (even if it's our local binary), we copy it into config.Root at localCopy for future use (so that the original can go away without that being a problem, for example during a package upgrade).
+			if err := os.Mkdir(path.Dir(localCopy), 0700); err != nil && !os.IsExist(err) {
+				return nil, err
+			}
+			if _, err := utils.CopyFile(sysInitPath, localCopy); err != nil {
+				return nil, err
+			}
+			if err := os.Chmod(localCopy, 0700); err != nil {
+				return nil, err
+			}
+			sysInitPath = localCopy
 		}
-		if _, err := utils.CopyFile(sysInitPath, localCopy); err != nil {
-			return nil, err
-		}
-		if err := os.Chmod(localCopy, 0700); err != nil {
-			return nil, err
-		}
-		sysInitPath = localCopy
+	} else {
+		sysInitPath = os.Getenv("TEMP")
 	}
 
 	sysInfo := sysinfo.New(false)

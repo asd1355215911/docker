@@ -289,7 +289,7 @@ func populateCommand(c *Container, env []string) error {
 		User:       c.Config.User,
 	}
 
-	//JJH Temp processConfig.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	//JJH Temp THIS LINE MUST GO BACK IN - NEEDS REFACTORING.   processConfig.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	processConfig.Env = env
 
 	c.command = &execdriver.Command{

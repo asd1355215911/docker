@@ -289,6 +289,7 @@ func populateCommand(c *Container, env []string) error {
 		User:       c.Config.User,
 	}
 
+	// TODO WINDOWS BUGBUG
 	//JJH Temp THIS LINE MUST GO BACK IN - NEEDS REFACTORING.   processConfig.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	processConfig.Env = env
 

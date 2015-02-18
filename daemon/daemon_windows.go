@@ -99,19 +99,13 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 		return nil, err
 	}
 
-	// Migrate the container if it is aufs and aufs is enabled
-	if err = migrateIfAufs(driver, config.Root); err != nil {
-		return nil, err
-	}
-
 	log.Debugf("Creating images graph")
 	g, err := graph.NewGraph(path.Join(config.Root, "graph"), driver)
 	if err != nil {
 		return nil, err
 	}
 
-	driverName := "windows"
-	volumesDriver, err := graphdriver.GetDriver(driverName, config.Root, config.GraphOptions)
+	volumesDriver, err := graphdriver.GetDriver("windows", config.Root, config.GraphOptions)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-// +build daemon,windows
+// +build daemon
 
 package utils
 

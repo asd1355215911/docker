@@ -25,3 +25,8 @@ func (container *Container) Kill() error {
 func (container *Container) setupContainerDns() error {
 	return nil
 }
+
+// No-op on Windows. TODO Windows. Factor this out
+func (container *Container) updateParentsHosts() error {
+	return nil
+}

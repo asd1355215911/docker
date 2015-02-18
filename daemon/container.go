@@ -1016,28 +1016,6 @@ func (container *Container) updateResolvConf(updatedResolvConf []byte, newResolv
 	return nil
 }
 
-func (container *Container) updateParentsHosts() error {
-	refs := container.daemon.ContainerGraph().RefPaths(container.ID)
-	for _, ref := range refs {
-		if ref.ParentID == "0" {
-			continue
-		}
-
-		c, err := container.daemon.Get(ref.ParentID)
-		if err != nil {
-			log.Error(err)
-		}
-
-		if c != nil && !container.daemon.config.DisableNetwork && container.hostConfig.NetworkMode.IsPrivate() {
-			log.Debugf("Update /etc/hosts of %s for alias %s with ip %s", c.ID, ref.Name, container.NetworkSettings.IPAddress)
-			if err := etchosts.Update(c.HostsPath, container.NetworkSettings.IPAddress, ref.Name); err != nil {
-				log.Errorf("Failed to update /etc/hosts in parent container %s for alias %s: %v", c.ID, ref.Name, err)
-			}
-		}
-	}
-	return nil
-}
-
 func (container *Container) initializeNetworking() error {
 	var err error
 	if container.hostConfig.NetworkMode.IsHost() {

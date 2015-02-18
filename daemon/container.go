@@ -837,6 +837,8 @@ func (container *Container) DisableLink(name string) {
 	}
 }
 
+// TODO WINDOWS. This can be factored out as we don't watch /etc/resolv.conf on Windows.
+
 // called when the host's resolv.conf changes to check whether container's resolv.conf
 // is unchanged by the container "user" since container start: if unchanged, the
 // container's resolv.conf will be updated to match the host's new resolv.conf

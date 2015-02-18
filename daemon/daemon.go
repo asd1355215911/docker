@@ -937,16 +937,19 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 	if !config.DisableNetwork {
 		job := eng.Job("init_networkdriver")
 
-		job.SetenvBool("EnableIptables", config.EnableIptables)
-		job.SetenvBool("InterContainerCommunication", config.InterContainerCommunication)
-		job.SetenvBool("EnableIpForward", config.EnableIpForward)
-		job.SetenvBool("EnableIpMasq", config.EnableIpMasq)
-		job.SetenvBool("EnableIPv6", config.EnableIPv6)
-		job.Setenv("BridgeIface", config.BridgeIface)
-		job.Setenv("BridgeIP", config.BridgeIP)
-		job.Setenv("FixedCIDR", config.FixedCIDR)
-		job.Setenv("FixedCIDRv6", config.FixedCIDRv6)
-		job.Setenv("DefaultBindingIP", config.DefaultIp.String())
+		// These environment variables are not required in Windows
+		if runtime.GOOS != "windows" {
+			job.SetenvBool("EnableIptables", config.EnableIptables)
+			job.SetenvBool("InterContainerCommunication", config.InterContainerCommunication)
+			job.SetenvBool("EnableIpForward", config.EnableIpForward)
+			job.SetenvBool("EnableIpMasq", config.EnableIpMasq)
+			job.SetenvBool("EnableIPv6", config.EnableIPv6)
+			job.Setenv("BridgeIface", config.BridgeIface)
+			job.Setenv("BridgeIP", config.BridgeIP)
+			job.Setenv("FixedCIDR", config.FixedCIDR)
+			job.Setenv("FixedCIDRv6", config.FixedCIDRv6)
+			job.Setenv("DefaultBindingIP", config.DefaultIp.String())
+		}
 
 		if err := job.Run(); err != nil {
 			return nil, err

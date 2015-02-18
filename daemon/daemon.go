@@ -798,6 +798,8 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 	if config.Mtu == 0 {
 		config.Mtu = getDefaultNetworkMtu()
 	}
+
+	// TODO Windows. This block can be factored out.
 	// Check for mutually incompatible config options
 	if config.BridgeIface != "" && config.BridgeIP != "" {
 		return nil, fmt.Errorf("You specified -b & --bip, mutually exclusive options. Please specify only one.")
@@ -808,6 +810,8 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 	if !config.EnableIptables && config.EnableIpMasq {
 		config.EnableIpMasq = false
 	}
+	// TODO Windows End of factoring out to be done.
+
 	config.DisableNetwork = config.BridgeIface == disableNetworkBridge
 
 	// Claim the pidfile first, to avoid any and all unexpected race conditions.
@@ -844,6 +848,8 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 		return nil, fmt.Errorf("Unable to get the full path to the TempDir (%s): %s", tmp, err)
 	}
 	os.Setenv("TMPDIR", realTmp)
+
+	// TODO Windows. Factor this out entirely.
 	if !config.EnableSelinuxSupport {
 		selinuxSetDisabled()
 	}
@@ -938,6 +944,7 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 		job := eng.Job("init_networkdriver")
 
 		// These environment variables are not required in Windows
+		// TODO Windows: Actually factor these out.
 		if runtime.GOOS != "windows" {
 			job.SetenvBool("EnableIptables", config.EnableIptables)
 			job.SetenvBool("InterContainerCommunication", config.InterContainerCommunication)
@@ -963,6 +970,7 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 	}
 
 	// Temporary workaround for Windows daemon
+	// TODO Windows - Factor this out.
 	sysInitPath := ""
 	if runtime.GOOS != "windows" {
 		localCopy := path.Join(config.Root, "init", fmt.Sprintf("dockerinit-%s", dockerversion.VERSION))
@@ -1018,6 +1026,7 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 	}
 
 	// set up filesystem watch on resolv.conf for network changes
+	// TODO Windows: Factor this out.
 	if runtime.GOOS != "windows" {
 		if err := daemon.setupResolvconfWatcher(); err != nil {
 			return nil, err

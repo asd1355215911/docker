@@ -48,7 +48,7 @@ type Config struct {
 func (config *Config) InstallFlags() {
 
 	flag.StringVar(&config.Pidfile, []string{"p", "-pidfile"}, "/var/run/docker.pid", "Path to use for daemon PID file")
-	flag.StringVar(&config.Root, []string{"g", "-graph"}, "/var/lib/docker", "Path to use as the root of the Docker runtime")
+	flag.StringVar(&config.Root, []string{"g", "-graph"}, "/var/lib/docker", "Path to the root of the Docker runtime")
 	flag.StringVar(&config.ExecDriver, []string{"e", "-exec-driver"}, "native", "Exec driver to use")
 	flag.BoolVar(&config.EnableIptables, []string{"#iptables", "-iptables"}, true, "Enable addition of iptables rules")
 	flag.BoolVar(&config.EnableIpForward, []string{"#ip-forward", "-ip-forward"}, true, "Enable net.ipv4.ip_forward")

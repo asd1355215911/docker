@@ -1,7 +1,6 @@
 package daemon
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -835,81 +834,6 @@ func (container *Container) DisableLink(name string) {
 			log.Debugf("Could not find active link for %s", name)
 		}
 	}
-}
-
-// TODO WINDOWS. This can be factored out as we don't watch /etc/resolv.conf on Windows.
-
-// called when the host's resolv.conf changes to check whether container's resolv.conf
-// is unchanged by the container "user" since container start: if unchanged, the
-// container's resolv.conf will be updated to match the host's new resolv.conf
-func (container *Container) updateResolvConf(updatedResolvConf []byte, newResolvHash string) error {
-
-	if container.ResolvConfPath == "" {
-		return nil
-	}
-	if container.Running {
-		//set a marker in the hostConfig to update on next start/restart
-		container.UpdateDns = true
-		return nil
-	}
-
-	resolvHashFile := container.ResolvConfPath + ".hash"
-
-	//read the container's current resolv.conf and compute the hash
-	resolvBytes, err := ioutil.ReadFile(container.ResolvConfPath)
-	if err != nil {
-		return err
-	}
-	curHash, err := utils.HashData(bytes.NewReader(resolvBytes))
-	if err != nil {
-		return err
-	}
-
-	//read the hash from the last time we wrote resolv.conf in the container
-	hashBytes, err := ioutil.ReadFile(resolvHashFile)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-		// backwards compat: if no hash file exists, this container pre-existed from
-		// a Docker daemon that didn't contain this update feature. Given we can't know
-		// if the user has modified the resolv.conf since container start time, safer
-		// to just never update the container's resolv.conf during it's lifetime which
-		// we can control by setting hashBytes to an empty string
-		hashBytes = []byte("")
-	}
-
-	//if the user has not modified the resolv.conf of the container since we wrote it last
-	//we will replace it with the updated resolv.conf from the host
-	if string(hashBytes) == curHash {
-		log.Debugf("replacing %q with updated host resolv.conf", container.ResolvConfPath)
-
-		// for atomic updates to these files, use temporary files with os.Rename:
-		dir := path.Dir(container.ResolvConfPath)
-		tmpHashFile, err := ioutil.TempFile(dir, "hash")
-		if err != nil {
-			return err
-		}
-		tmpResolvFile, err := ioutil.TempFile(dir, "resolv")
-		if err != nil {
-			return err
-		}
-
-		// write the updates to the temp files
-		if err = ioutil.WriteFile(tmpHashFile.Name(), []byte(newResolvHash), 0644); err != nil {
-			return err
-		}
-		if err = ioutil.WriteFile(tmpResolvFile.Name(), updatedResolvConf, 0644); err != nil {
-			return err
-		}
-
-		// rename the temp files for atomic replace
-		if err = os.Rename(tmpHashFile.Name(), resolvHashFile); err != nil {
-			return err
-		}
-		return os.Rename(tmpResolvFile.Name(), container.ResolvConfPath)
-	}
-	return nil
 }
 
 func (container *Container) initializeNetworking() error {

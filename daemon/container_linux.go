@@ -153,3 +153,145 @@ func (container *Container) verifyDaemonSettings() {
 		log.Infof("WARNING: IPv4 forwarding is disabled. Networking will not work")
 	}
 }
+
+func (container *Container) AllocateNetwork() error {
+	mode := container.hostConfig.NetworkMode
+	if container.Config.NetworkDisabled || !mode.IsPrivate() {
+		return nil
+	}
+
+	var (
+		env *engine.Env
+		err error
+		eng = container.daemon.eng
+	)
+
+	job := eng.Job("allocate_interface", container.ID)
+	job.Setenv("RequestedMac", container.Config.MacAddress)
+	if env, err = job.Stdout.AddEnv(); err != nil {
+		return err
+	}
+	if err = job.Run(); err != nil {
+		return err
+	}
+
+	// Error handling: At this point, the interface is allocated so we have to
+	// make sure that it is always released in case of error, otherwise we
+	// might leak resources.
+
+	if container.Config.PortSpecs != nil {
+		if err = migratePortMappings(container.Config, container.hostConfig); err != nil {
+			eng.Job("release_interface", container.ID).Run()
+			return err
+		}
+		container.Config.PortSpecs = nil
+		if err = container.WriteHostConfig(); err != nil {
+			eng.Job("release_interface", container.ID).Run()
+			return err
+		}
+	}
+
+	var (
+		portSpecs = make(nat.PortSet)
+		bindings  = make(nat.PortMap)
+	)
+
+	if container.Config.ExposedPorts != nil {
+		portSpecs = container.Config.ExposedPorts
+	}
+
+	if container.hostConfig.PortBindings != nil {
+		for p, b := range container.hostConfig.PortBindings {
+			bindings[p] = []nat.PortBinding{}
+			for _, bb := range b {
+				bindings[p] = append(bindings[p], nat.PortBinding{
+					HostIp:   bb.HostIp,
+					HostPort: bb.HostPort,
+				})
+			}
+		}
+	}
+
+	container.NetworkSettings.PortMapping = nil
+
+	for port := range portSpecs {
+		if err = container.allocatePort(eng, port, bindings); err != nil {
+			eng.Job("release_interface", container.ID).Run()
+			return err
+		}
+	}
+	container.WriteHostConfig()
+
+	container.NetworkSettings.Ports = bindings
+	container.NetworkSettings.Bridge = env.Get("Bridge")
+	container.NetworkSettings.IPAddress = env.Get("IP")
+	container.NetworkSettings.IPPrefixLen = env.GetInt("IPPrefixLen")
+	container.NetworkSettings.MacAddress = env.Get("MacAddress")
+	container.NetworkSettings.Gateway = env.Get("Gateway")
+	container.NetworkSettings.LinkLocalIPv6Address = env.Get("LinkLocalIPv6")
+	container.NetworkSettings.LinkLocalIPv6PrefixLen = 64
+	container.NetworkSettings.GlobalIPv6Address = env.Get("GlobalIPv6")
+	container.NetworkSettings.GlobalIPv6PrefixLen = env.GetInt("GlobalIPv6PrefixLen")
+	container.NetworkSettings.IPv6Gateway = env.Get("IPv6Gateway")
+
+	return nil
+}
+
+func (container *Container) allocatePort(eng *engine.Engine, port nat.Port, bindings nat.PortMap) error {
+	binding := bindings[port]
+	if container.hostConfig.PublishAllPorts && len(binding) == 0 {
+		binding = append(binding, nat.PortBinding{})
+	}
+
+	for i := 0; i < len(binding); i++ {
+		b := binding[i]
+
+		job := eng.Job("allocate_port", container.ID)
+		job.Setenv("HostIP", b.HostIp)
+		job.Setenv("HostPort", b.HostPort)
+		job.Setenv("Proto", port.Proto())
+		job.Setenv("ContainerPort", port.Port())
+
+		portEnv, err := job.Stdout.AddEnv()
+		if err != nil {
+			return err
+		}
+		if err := job.Run(); err != nil {
+			return err
+		}
+		b.HostIp = portEnv.Get("HostIP")
+		b.HostPort = portEnv.Get("HostPort")
+
+		binding[i] = b
+	}
+	bindings[port] = binding
+	return nil
+}
+
+func (container *Container) RestoreNetwork() error {
+	mode := container.hostConfig.NetworkMode
+	// Don't attempt a restore if we previously didn't allocate networking.
+	// This might be a legacy container with no network allocated, in which case the
+	// allocation will happen once and for all at start.
+	if !container.isNetworkAllocated() || container.Config.NetworkDisabled || !mode.IsPrivate() {
+		return nil
+	}
+
+	eng := container.daemon.eng
+
+	// Re-allocate the interface with the same IP and MAC address.
+	job := eng.Job("allocate_interface", container.ID)
+	job.Setenv("RequestedIP", container.NetworkSettings.IPAddress)
+	job.Setenv("RequestedMac", container.NetworkSettings.MacAddress)
+	if err := job.Run(); err != nil {
+		return err
+	}
+
+	// Re-allocate any previously allocated ports.
+	for port := range container.NetworkSettings.Ports {
+		if err := container.allocatePort(eng, port, container.NetworkSettings.Ports); err != nil {
+			return err
+		}
+	}
+	return nil
+}

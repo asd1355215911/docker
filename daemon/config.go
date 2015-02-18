@@ -56,11 +56,11 @@ func (config *Config) InstallFlags() {
 
 	if runtime.GOOS == "windows" {
 		flag.StringVar(&config.Pidfile, []string{"p", "-pidfile"}, os.Getenv("temp")+"docker.pid", "Path to use for daemon PID file")
-		flag.StringVar(&config.Root, []string{"g", "-graph"}, os.Getenv("temp")+"/docker", "Path to use as the root of the Docker runtime")
+		flag.StringVar(&config.Root, []string{"g", "-graph"}, os.Getenv("temp")+"/docker", "Path to the root of the Docker runtime")
 		flag.StringVar(&config.ExecDriver, []string{"e", "-exec-driver"}, "windows", "Exec driver to use")
 	} else {
 		flag.StringVar(&config.Pidfile, []string{"p", "-pidfile"}, "/var/run/docker.pid", "Path to use for daemon PID file")
-		flag.StringVar(&config.Root, []string{"g", "-graph"}, "/var/lib/docker", "Path to use as the root of the Docker runtime")
+		flag.StringVar(&config.Root, []string{"g", "-graph"}, "/var/lib/docker", "Path to the root of the Docker runtime")
 		flag.StringVar(&config.ExecDriver, []string{"e", "-exec-driver"}, "native", "Exec driver to use")
 	}
 

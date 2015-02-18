@@ -12,8 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/libcontainer/label"
-
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/docker/docker/daemon/execdriver"
@@ -541,31 +539,6 @@ func (daemon *Daemon) getEntrypointAndArgs(configEntrypoint, configCmd []string)
 		args = configCmd[1:]
 	}
 	return entrypoint, args
-}
-
-func parseSecurityOpt(container *Container, config *runconfig.HostConfig) error {
-	var (
-		labelOpts []string
-		err       error
-	)
-
-	for _, opt := range config.SecurityOpt {
-		con := strings.SplitN(opt, ":", 2)
-		if len(con) == 1 {
-			return fmt.Errorf("Invalid --security-opt: %q", opt)
-		}
-		switch con[0] {
-		case "label":
-			labelOpts = append(labelOpts, con[1])
-		case "apparmor":
-			container.AppArmorProfile = con[1]
-		default:
-			return fmt.Errorf("Invalid --security-opt: %q", opt)
-		}
-	}
-
-	container.ProcessLabel, container.MountLabel, err = label.InitLabels(labelOpts)
-	return err
 }
 
 func (daemon *Daemon) newContainer(name string, config *runconfig.Config, imgID string) (*Container, error) {

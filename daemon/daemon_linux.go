@@ -5,6 +5,7 @@ package daemon
 import (
 	"bytes"
 	"path/filepath"
+	"strings"
 
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/daemon/execdriver"
@@ -16,7 +17,8 @@ import (
 	"github.com/docker/docker/dockerversion"
 	"github.com/docker/docker/pkg/networkfs/resolvconf"
 	"github.com/docker/docker/pkg/parsers/kernel"
-
+	"github.com/docker/docker/runconfig"
+	"github.com/docker/libcontainer/label"
 	"github.com/go-fsnotify/fsnotify"
 )
 
@@ -333,4 +335,29 @@ func (daemon *Daemon) setupResolvconfWatcher() error {
 		return err
 	}
 	return nil
+}
+
+func parseSecurityOpt(container *Container, config *runconfig.HostConfig) error {
+	var (
+		labelOpts []string
+		err       error
+	)
+
+	for _, opt := range config.SecurityOpt {
+		con := strings.SplitN(opt, ":", 2)
+		if len(con) == 1 {
+			return fmt.Errorf("Invalid --security-opt: %q", opt)
+		}
+		switch con[0] {
+		case "label":
+			labelOpts = append(labelOpts, con[1])
+		case "apparmor":
+			container.AppArmorProfile = con[1]
+		default:
+			return fmt.Errorf("Invalid --security-opt: %q", opt)
+		}
+	}
+
+	container.ProcessLabel, container.MountLabel, err = label.InitLabels(labelOpts)
+	return err
 }

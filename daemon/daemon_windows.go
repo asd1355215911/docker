@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -22,9 +23,11 @@ import (
 	"github.com/docker/docker/pkg/graphdb"
 	"github.com/docker/docker/pkg/sysinfo"
 	"github.com/docker/docker/pkg/truncindex"
+	"github.com/docker/docker/runconfig"
 	"github.com/docker/docker/trust"
 	"github.com/docker/docker/utils"
 	"github.com/docker/docker/volumes"
+	"github.com/docker/libcontainer/label"
 )
 
 // TODO Windows This can probably be factored out better
@@ -209,4 +212,29 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 	})
 
 	return daemon, nil
+}
+
+// Factored out AppArmor.
+// TODO Windows: What about label? Is this valid?
+func parseSecurityOpt(container *Container, config *runconfig.HostConfig) error {
+	var (
+		labelOpts []string
+		err       error
+	)
+
+	for _, opt := range config.SecurityOpt {
+		con := strings.SplitN(opt, ":", 2)
+		if len(con) == 1 {
+			return fmt.Errorf("Invalid --security-opt: %q", opt)
+		}
+		switch con[0] {
+		case "label":
+			labelOpts = append(labelOpts, con[1])
+		default:
+			return fmt.Errorf("Invalid --security-opt: %q", opt)
+		}
+	}
+
+	container.ProcessLabel, container.MountLabel, err = label.InitLabels(labelOpts)
+	return err
 }

@@ -310,8 +310,9 @@ func populateCommand(c *Container, env []string) error {
 		ProcessConfig:      processConfig,
 		ProcessLabel:       c.GetProcessLabel(),
 		MountLabel:         c.GetMountLabel(),
-		LxcConfig:          lxcConfig,
-		AppArmorProfile:    c.AppArmorProfile,
+		// TODO WINDOWS Can factor out LxcConfig and AppArmorProfile
+		LxcConfig:       lxcConfig,
+		AppArmorProfile: c.AppArmorProfile,
 	}
 
 	return nil

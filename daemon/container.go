@@ -1071,21 +1071,6 @@ func (container *Container) initializeNetworking() error {
 	return container.buildHostnameAndHostsFiles(container.NetworkSettings.IPAddress)
 }
 
-// Make sure the config is compatible with the current kernel
-func (container *Container) verifyDaemonSettings() {
-	if container.Config.Memory > 0 && !container.daemon.sysInfo.MemoryLimit {
-		log.Infof("WARNING: Your kernel does not support memory limit capabilities. Limitation discarded.")
-		container.Config.Memory = 0
-	}
-	if container.Config.Memory > 0 && !container.daemon.sysInfo.SwapLimit {
-		log.Infof("WARNING: Your kernel does not support swap limit capabilities. Limitation discarded.")
-		container.Config.MemorySwap = -1
-	}
-	if container.daemon.sysInfo.IPv4ForwardingDisabled {
-		log.Infof("WARNING: IPv4 forwarding is disabled. Networking will not work")
-	}
-}
-
 func (container *Container) setupLinkedContainers() ([]string, error) {
 	var (
 		env    []string

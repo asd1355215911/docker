@@ -30,3 +30,8 @@ func (container *Container) setupContainerDns() error {
 func (container *Container) updateParentsHosts() error {
 	return nil
 }
+
+// No-op on Windows. TODO Windows. Factor this out
+// Make sure the config is compatible with the current kernel
+func (container *Container) verifyDaemonSettings() {
+}

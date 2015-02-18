@@ -7,6 +7,7 @@ import (
 	//TODO Windows. Stefan - there'll be a bunch of Linux includes here.
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/docker/docker/engine"
 	"github.com/docker/docker/pkg/networkfs/resolvconf"
 	"github.com/docker/docker/utils"
 )

@@ -19,7 +19,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/daemon/execdriver"
-	"github.com/docker/docker/engine"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/links"
 	"github.com/docker/docker/nat"
@@ -78,9 +77,11 @@ type Container struct {
 
 	daemon                   *Daemon
 	MountLabel, ProcessLabel string
-	AppArmorProfile          string
-	RestartCount             int
-	UpdateDns                bool
+
+	// TODO Windows - Can factor out AppArmor
+	AppArmorProfile string
+	RestartCount    int
+	UpdateDns       bool
 
 	// Maps container paths to volume paths.  The key in this is the path to which
 	// the volume is being mounted inside the container.  Value is the path of the

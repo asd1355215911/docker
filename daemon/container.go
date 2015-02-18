@@ -350,6 +350,7 @@ func (container *Container) Start() (err error) {
 	if err := container.initializeNetworking(); err != nil {
 		return err
 	}
+	// Note updateParentHosts is a no-op on the Windows daemon
 	if err := container.updateParentsHosts(); err != nil {
 		return err
 	}
@@ -740,6 +741,7 @@ func (container *Container) GetSize() (int64, int64) {
 		sizeRw = -1
 	}
 
+	// TODO WINDOWS BUGBUG. FIXME
 	//JJH Temp
 	//if _, err = os.Stat(container.basefs); err != nil {
 	//	if sizeRootfs, err = utils.TreeSize(container.basefs); err != nil {

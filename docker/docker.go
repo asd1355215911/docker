@@ -54,6 +54,7 @@ func main() {
 		initLogging(log.DebugLevel)
 	}
 
+	// TODO Windows. Need to change the default here.
 	if len(flHosts) == 0 {
 		defaultHost := os.Getenv("DOCKER_HOST")
 		if defaultHost == "" || *flDaemon {

@@ -9,3 +9,8 @@ import (
 func KillIfLxc(ID string) {
 	// No-op on Windows as Lxc execution driver is not used.
 }
+
+func checkKernel() error {
+	// No-op on Windows
+	return nil
+}

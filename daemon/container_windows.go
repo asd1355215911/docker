@@ -20,3 +20,8 @@ func (container *Container) Kill() error {
 	container.WaitStop(-1 * time.Second)
 	return nil
 }
+
+// No-op on Windows. TODO Windows. Factor this out.
+func (container *Container) setupContainerDns() error {
+	return nil
+}

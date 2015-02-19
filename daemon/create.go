@@ -22,17 +22,21 @@ func (daemon *Daemon) ContainerCreate(job *engine.Job) engine.Status {
 	if config.Memory != 0 && config.Memory < 4194304 {
 		return job.Errorf("Minimum memory limit allowed is 4MB")
 	}
+	// TODO WINDOWS This needs work
 	if config.Memory > 0 && !daemon.SystemConfig().MemoryLimit {
 		job.Errorf("Your kernel does not support memory limit capabilities. Limitation discarded.\n")
 		config.Memory = 0
 	}
+	// TODO WINDOWS This needs work
 	if config.Memory > 0 && !daemon.SystemConfig().SwapLimit {
 		job.Errorf("Your kernel does not support swap limit capabilities. Limitation discarded.\n")
 		config.MemorySwap = -1
 	}
+	// TODO WINDOWS This needs work
 	if config.Memory > 0 && config.MemorySwap > 0 && config.MemorySwap < config.Memory {
 		return job.Errorf("Minimum memoryswap limit should be larger than memory limit, see usage.\n")
 	}
+	// TODO WINDOWS This needs work
 	if config.Memory == 0 && config.MemorySwap > 0 {
 		return job.Errorf("You should always set the Memory limit when using Memoryswap limit, see usage.\n")
 	}

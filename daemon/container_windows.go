@@ -45,3 +45,8 @@ func (container *Container) AllocateNetwork() error {
 func (container *Container) RestoreNetwork() error {
 	return nil
 }
+
+// No-op on Windows. TODO Windows. Factor this out
+func (container *Container) initializeNetworking() error {
+	return nil
+}

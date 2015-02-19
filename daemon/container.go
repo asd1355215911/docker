@@ -836,62 +836,6 @@ func (container *Container) DisableLink(name string) {
 	}
 }
 
-// TODO WINDOWS. This can probably be factored out.
-func (container *Container) initializeNetworking() error {
-	var err error
-	if container.hostConfig.NetworkMode.IsHost() {
-		container.Config.Hostname, err = os.Hostname()
-		if err != nil {
-			return err
-		}
-
-		parts := strings.SplitN(container.Config.Hostname, ".", 2)
-		if len(parts) > 1 {
-			container.Config.Hostname = parts[0]
-			container.Config.Domainname = parts[1]
-		}
-
-		content, err := ioutil.ReadFile("/etc/hosts")
-		if os.IsNotExist(err) {
-			return container.buildHostnameAndHostsFiles("")
-		} else if err != nil {
-			return err
-		}
-
-		if err := container.buildHostnameFile(); err != nil {
-			return err
-		}
-
-		hostsPath, err := container.getRootResourcePath("hosts")
-		if err != nil {
-			return err
-		}
-		container.HostsPath = hostsPath
-
-		return ioutil.WriteFile(container.HostsPath, content, 0644)
-	}
-	if container.hostConfig.NetworkMode.IsContainer() {
-		// we need to get the hosts files from the container to join
-		nc, err := container.getNetworkedContainer()
-		if err != nil {
-			return err
-		}
-		container.HostsPath = nc.HostsPath
-		container.ResolvConfPath = nc.ResolvConfPath
-		container.Config.Hostname = nc.Config.Hostname
-		container.Config.Domainname = nc.Config.Domainname
-		return nil
-	}
-	if container.daemon.config.DisableNetwork {
-		container.Config.NetworkDisabled = true
-		return container.buildHostnameAndHostsFiles("127.0.1.1")
-	}
-	if err := container.AllocateNetwork(); err != nil {
-		return err
-	}
-	return container.buildHostnameAndHostsFiles(container.NetworkSettings.IPAddress)
-}
-
 func (container *Container) setupLinkedContainers() ([]string, error) {
 	var (
 		env    []string

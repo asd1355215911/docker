@@ -597,3 +597,116 @@ func (container *Container) setupLinkedContainers() ([]string, error) {
 	}
 	return env, nil
 }
+
+func populateCommand(c *Container, env []string) error {
+	en := &execdriver.Network{
+		Mtu:       c.daemon.config.Mtu,
+		Interface: nil,
+	}
+
+	parts := strings.SplitN(string(c.hostConfig.NetworkMode), ":", 2)
+	switch parts[0] {
+	case "none":
+	case "host":
+		en.HostNetworking = true
+	case "bridge", "": // empty string to support existing containers
+		if !c.Config.NetworkDisabled {
+			network := c.NetworkSettings
+			en.Interface = &execdriver.NetworkInterface{
+				Gateway:              network.Gateway,
+				Bridge:               network.Bridge,
+				IPAddress:            network.IPAddress,
+				IPPrefixLen:          network.IPPrefixLen,
+				MacAddress:           network.MacAddress,
+				LinkLocalIPv6Address: network.LinkLocalIPv6Address,
+				GlobalIPv6Address:    network.GlobalIPv6Address,
+				GlobalIPv6PrefixLen:  network.GlobalIPv6PrefixLen,
+				IPv6Gateway:          network.IPv6Gateway,
+			}
+		}
+	case "container":
+		nc, err := c.getNetworkedContainer()
+		if err != nil {
+			return err
+		}
+		en.ContainerID = nc.ID
+	default:
+		return fmt.Errorf("invalid network mode: %s", c.hostConfig.NetworkMode)
+	}
+
+	ipc := &execdriver.Ipc{}
+
+	if c.hostConfig.IpcMode.IsContainer() {
+		ic, err := c.getIpcContainer()
+		if err != nil {
+			return err
+		}
+		ipc.ContainerID = ic.ID
+	} else {
+		ipc.HostIpc = c.hostConfig.IpcMode.IsHost()
+	}
+
+	pid := &execdriver.Pid{}
+	pid.HostPid = c.hostConfig.PidMode.IsHost()
+
+	// Build lists of devices allowed and created within the container.
+	userSpecifiedDevices := make([]*devices.Device, len(c.hostConfig.Devices))
+	for i, deviceMapping := range c.hostConfig.Devices {
+		device, err := devices.GetDevice(deviceMapping.PathOnHost, deviceMapping.CgroupPermissions)
+		if err != nil {
+			return fmt.Errorf("error gathering device information while adding custom device %q: %s", deviceMapping.PathOnHost, err)
+		}
+		device.Path = deviceMapping.PathInContainer
+		userSpecifiedDevices[i] = device
+	}
+	allowedDevices := append(devices.DefaultAllowedDevices, userSpecifiedDevices...)
+
+	autoCreatedDevices := append(devices.DefaultAutoCreatedDevices, userSpecifiedDevices...)
+
+	// TODO: this can be removed after lxc-conf is fully deprecated
+	lxcConfig, err := mergeLxcConfIntoOptions(c.hostConfig)
+	if err != nil {
+		return err
+	}
+
+	resources := &execdriver.Resources{
+		Memory:     c.Config.Memory,
+		MemorySwap: c.Config.MemorySwap,
+		CpuShares:  c.Config.CpuShares,
+		Cpuset:     c.Config.Cpuset,
+	}
+
+	processConfig := execdriver.ProcessConfig{
+		Privileged: c.hostConfig.Privileged,
+		Entrypoint: c.Path,
+		Arguments:  c.Args,
+		Tty:        c.Config.Tty,
+		User:       c.Config.User,
+	}
+
+	processConfig.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	processConfig.Env = env
+
+	c.command = &execdriver.Command{
+		ID:                 c.ID,
+		Rootfs:             c.RootfsPath(),
+		ReadonlyRootfs:     c.hostConfig.ReadonlyRootfs,
+		InitPath:           "/.dockerinit",
+		WorkingDir:         c.Config.WorkingDir,
+		Network:            en,
+		Ipc:                ipc,
+		Pid:                pid,
+		Resources:          resources,
+		AllowedDevices:     allowedDevices,
+		AutoCreatedDevices: autoCreatedDevices,
+		CapAdd:             c.hostConfig.CapAdd,
+		CapDrop:            c.hostConfig.CapDrop,
+		ProcessConfig:      processConfig,
+		ProcessLabel:       c.GetProcessLabel(),
+		MountLabel:         c.GetMountLabel(),
+		LxcConfig:          lxcConfig,
+		AppArmorProfile:    c.AppArmorProfile,
+	}
+
+	return nil
+}

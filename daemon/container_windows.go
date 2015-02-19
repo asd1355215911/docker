@@ -48,13 +48,8 @@ func (container *Container) Start() (err error) {
 		return err
 	}
 
-	if err != nil {
-		return err
-	}
+	// This is where is Linux it calls into the Exec Driver. TODO WINDOWS (see populateCommand())
 
-	//	if err := populateCommand(container, env); err != nil {
-	//		return err
-	//	}
 	if err := container.setupMounts(); err != nil {
 		return err
 	}

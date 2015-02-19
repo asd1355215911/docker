@@ -59,11 +59,6 @@ func (container *Container) Start() (err error) {
 }
 
 // No-op on Windows. TODO Windows. Factor this out
-func (container *Container) AllocateNetwork() error {
-	return nil
-}
-
-// No-op on Windows. TODO Windows. Factor this out
 func (container *Container) RestoreNetwork() error {
 	return nil
 }

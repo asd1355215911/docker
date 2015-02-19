@@ -12,7 +12,6 @@ import (
 )
 
 func init() {
-	fmt.Println("WindowsGraphDriver init()")
 	graphdriver.Register("windows", Init)
 }
 

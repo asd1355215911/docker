@@ -17,7 +17,6 @@ import (
 	"github.com/docker/docker/daemon/execdriver/execdrivers"
 	"github.com/docker/docker/daemon/graphdriver"
 	_ "github.com/docker/docker/daemon/graphdriver/windows"
-	"github.com/docker/docker/dockerversion"
 	"github.com/docker/docker/engine"
 	"github.com/docker/docker/graph"
 	"github.com/docker/docker/pkg/graphdb"
@@ -152,14 +151,8 @@ func NewDaemonFromDirectory(config *Config, eng *engine.Engine) (*Daemon, error)
 		return nil, err
 	}
 
-	localCopy := path.Join(config.Root, "init", fmt.Sprintf("dockerinit-%s", dockerversion.VERSION))
-	sysInitPath := utils.DockerInitPath(localCopy)
-	if sysInitPath == "" {
-		return nil, fmt.Errorf("Could not locate dockerinit: This usually means docker was built incorrectly. See http://docs.docker.com/contributing/devenvironment for official build instructions.")
-	}
-
 	// TODO Windows. This is temporary.
-	sysInitPath = os.Getenv("TEMP")
+	sysInitPath := os.Getenv("TEMP")
 
 	sysInfo := sysinfo.New(false)
 	ed, err := execdrivers.NewDriver(config.ExecDriver, config.Root, sysInitPath, sysInfo)

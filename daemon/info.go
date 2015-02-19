@@ -85,7 +85,10 @@ func (daemon *Daemon) CmdInfo(job *engine.Job) engine.Status {
 	v.Set("InitSha1", dockerversion.INITSHA1)
 	v.Set("InitPath", initPath)
 	v.SetInt("NCPU", runtime.NumCPU())
-	v.SetInt64("MemTotal", meminfo.MemTotal)
+	// TODO Windows. This is temporary until meminfo is implemented for Windows.
+	if runtime.GOOS == "linux" {
+		v.SetInt64("MemTotal", meminfo.MemTotal)
+	}
 	v.Set("DockerRootDir", daemon.Config().Root)
 	if hostname, err := os.Hostname(); err == nil {
 		v.SetJson("Name", hostname)

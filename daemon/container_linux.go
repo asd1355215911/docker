@@ -543,3 +543,57 @@ func (container *Container) createDaemonEnvironment(linkedEnv []string) []string
 
 	return env
 }
+
+func (container *Container) setupLinkedContainers() ([]string, error) {
+	var (
+		env    []string
+		daemon = container.daemon
+	)
+	children, err := daemon.Children(container.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(children) > 0 {
+		container.activeLinks = make(map[string]*links.Link, len(children))
+
+		// If we encounter an error make sure that we rollback any network
+		// config and ip table changes
+		rollback := func() {
+			for _, link := range container.activeLinks {
+				link.Disable()
+			}
+			container.activeLinks = nil
+		}
+
+		for linkAlias, child := range children {
+			if !child.IsRunning() {
+				return nil, fmt.Errorf("Cannot link to a non running container: %s AS %s", child.Name, linkAlias)
+			}
+
+			link, err := links.NewLink(
+				container.NetworkSettings.IPAddress,
+				child.NetworkSettings.IPAddress,
+				linkAlias,
+				child.Config.Env,
+				child.Config.ExposedPorts,
+				daemon.eng)
+
+			if err != nil {
+				rollback()
+				return nil, err
+			}
+
+			container.activeLinks[link.Alias()] = link
+			if err := link.Enable(); err != nil {
+				rollback()
+				return nil, err
+			}
+
+			for _, envVar := range link.ToEnv() {
+				env = append(env, envVar)
+			}
+		}
+	}
+	return env, nil
+}

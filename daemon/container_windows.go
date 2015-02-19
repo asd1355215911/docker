@@ -47,7 +47,7 @@ func (container *Container) Start() (err error) {
 	if err := container.Mount(); err != nil {
 		return err
 	}
-	//	linkedEnv, err := container.setupLinkedContainers()
+
 	if err != nil {
 		return err
 	}

@@ -554,39 +554,6 @@ func validateID(id string) error {
 	return nil
 }
 
-// GetSize, return real size, virtual size
-func (container *Container) GetSize() (int64, int64) {
-	var (
-		sizeRw, sizeRootfs int64
-		err                error
-		driver             = container.daemon.driver
-	)
-
-	if err := container.Mount(); err != nil {
-		log.Errorf("Warning: failed to compute size of container rootfs %s: %s", container.ID, err)
-		return sizeRw, sizeRootfs
-	}
-	defer container.Unmount()
-
-	initID := fmt.Sprintf("%s-init", container.ID)
-	sizeRw, err = driver.DiffSize(container.ID, initID)
-	if err != nil {
-		log.Errorf("Warning: driver %s couldn't return diff size of container %s: %s", driver, container.ID, err)
-		// FIXME: GetSize should return an error. Not changing it now in case
-		// there is a side-effect.
-		sizeRw = -1
-	}
-
-	// TODO WINDOWS BUGBUG. FIXME
-	//JJH Temp
-	//if _, err = os.Stat(container.basefs); err != nil {
-	//	if sizeRootfs, err = utils.TreeSize(container.basefs); err != nil {
-	//		sizeRootfs = -1
-	//	}
-	//}
-	return sizeRw, sizeRootfs
-}
-
 func (container *Container) Copy(resource string) (io.ReadCloser, error) {
 	if err := container.Mount(); err != nil {
 		return nil, err

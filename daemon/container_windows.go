@@ -50,8 +50,7 @@ func (container *Container) Start() (err error) {
 
 	// This is where is Linux it calls into the Exec Driver. TODO WINDOWS (see populateCommand())
 
-
-    // TODO WINDOWS To factor this out requires work in volumes.go which I suspect might be a bunch of work
+	// TODO WINDOWS To factor this out requires work in volumes.go which I suspect might be a bunch of work
 	if err := container.setupMounts(); err != nil {
 		return err
 	}
@@ -73,4 +72,10 @@ func (container *Container) RestoreNetwork() error {
 // This can be totally factored out but currently also used in create.go
 func (container *Container) prepareVolumes() error {
 	return nil
+}
+
+// TODO WINDOWS
+// GetSize, return real size, virtual size
+func (container *Container) GetSize() (int64, int64) {
+	return 0, 0
 }

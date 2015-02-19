@@ -21,6 +21,7 @@ func (container *Container) Kill() error {
 	return nil
 }
 
+// TODO WINDOWS - This function still needs more refactoring.
 func (container *Container) Start() (err error) {
 	container.Lock()
 	defer container.Unlock()
@@ -48,9 +49,6 @@ func (container *Container) Start() (err error) {
 	}
 	linkedEnv, err := container.setupLinkedContainers()
 	if err != nil {
-		return err
-	}
-	if err := container.setupWorkingDirectory(); err != nil {
 		return err
 	}
 	env := container.createDaemonEnvironment(linkedEnv)

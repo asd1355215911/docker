@@ -490,3 +490,29 @@ func (container *Container) initializeNetworking() error {
 	}
 	return container.buildHostnameAndHostsFiles(container.NetworkSettings.IPAddress)
 }
+
+func (container *Container) setupWorkingDirectory() error {
+	if container.Config.WorkingDir != "" {
+		container.Config.WorkingDir = path.Clean(container.Config.WorkingDir)
+
+		pth, err := container.getResourcePath(container.Config.WorkingDir)
+		if err != nil {
+			return err
+		}
+
+		pthInfo, err := os.Stat(pth)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return err
+			}
+
+			if err := os.MkdirAll(pth, 0755); err != nil {
+				return err
+			}
+		}
+		if pthInfo != nil && !pthInfo.IsDir() {
+			return fmt.Errorf("Cannot mkdir: %s is not a directory", container.Config.WorkingDir)
+		}
+	}
+	return nil
+}

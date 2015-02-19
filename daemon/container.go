@@ -29,6 +29,7 @@ import (
 	"github.com/docker/docker/runconfig"
 )
 
+// TODO WINDOWS. This needs changing
 const DefaultPathEnv = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 var (
@@ -78,7 +79,8 @@ type Container struct {
 	// TODO Windows - Can factor out AppArmor
 	AppArmorProfile string
 	RestartCount    int
-	UpdateDns       bool
+	// TODO Windows - Is UpdateDns going to be needed?
+	UpdateDns bool
 
 	// Maps container paths to volume paths.  The key in this is the path to which
 	// the volume is being mounted inside the container.  Value is the path of the
@@ -89,7 +91,9 @@ type Container struct {
 	VolumesRW  map[string]bool
 	hostConfig *runconfig.HostConfig
 
-	activeLinks        map[string]*links.Link
+	// TODO Windows. What is activeLinks. Do we need it?
+	activeLinks map[string]*links.Link
+	// TODO Windows. What is monitor. Needs investigation.
 	monitor            *containerMonitor
 	execCommands       *execStore
 	AppliedVolumesFrom map[string]struct{}
@@ -255,6 +259,7 @@ func (streamConfig *StreamConfig) StderrLogPipe() io.ReadCloser {
 	return ioutils.NewBufReader(reader)
 }
 
+// TODO WINDOWS. This can be factored out I believe (JJH 2/18)
 func (container *Container) buildHostnameFile() error {
 	hostnamePath, err := container.getRootResourcePath("hostname")
 	if err != nil {
@@ -268,6 +273,7 @@ func (container *Container) buildHostnameFile() error {
 	return ioutil.WriteFile(container.HostnamePath, []byte(container.Config.Hostname+"\n"), 0644)
 }
 
+// TODO WINDOWS. This can be factored out I believe (JJH 2/18)
 func (container *Container) buildHostsFiles(IP string) error {
 
 	hostsPath, err := container.getRootResourcePath("hosts")
@@ -297,6 +303,7 @@ func (container *Container) buildHostsFiles(IP string) error {
 	return etchosts.Build(container.HostsPath, IP, container.Config.Hostname, container.Config.Domainname, extraContent)
 }
 
+// TODO WINDOWS. This can be factored out I believe (JJH 2/18)
 func (container *Container) buildHostnameAndHostsFiles(IP string) error {
 	if err := container.buildHostnameFile(); err != nil {
 		return err
@@ -305,6 +312,7 @@ func (container *Container) buildHostnameAndHostsFiles(IP string) error {
 	return container.buildHostsFiles(IP)
 }
 
+// TODO WINDOWS. This can be factored out I believe (JJH 2/18)
 func (container *Container) ReleaseNetwork() {
 	if container.Config.NetworkDisabled || !container.hostConfig.NetworkMode.IsPrivate() {
 		return
@@ -324,8 +332,11 @@ func (container *Container) isNetworkAllocated() bool {
 // cleanup releases any network resources allocated to the container along with any rules
 // around how containers are linked together.  It also unmounts the container's root filesystem.
 func (container *Container) cleanup() {
+
+	// TODO WINDOWS. This can be factored out I believe (JJH 2/18). At least this call
 	container.ReleaseNetwork()
 
+	// TODO WINDOWS. Are activeLinks needed on Windows? JJH 2/18
 	// Disable all active links
 	if container.activeLinks != nil {
 		for _, link := range container.activeLinks {
@@ -333,6 +344,7 @@ func (container *Container) cleanup() {
 		}
 	}
 
+	// TODO WINDOWS. This can be factored out I believe (JJH 2/18) - Unmount
 	if err := container.Unmount(); err != nil {
 		log.Errorf("%v: Failed to umount filesystem: %v", container.ID, err)
 	}
@@ -709,6 +721,7 @@ func (container *Container) GetMountLabel() string {
 	return container.MountLabel
 }
 
+// TODO WINDOWS. This can be factored out I believe (JJH 2/18)
 func (container *Container) getIpcContainer() (*Container, error) {
 	containerID := container.hostConfig.IpcMode.Container()
 	c, err := container.daemon.Get(containerID)
@@ -721,6 +734,7 @@ func (container *Container) getIpcContainer() (*Container, error) {
 	return c, nil
 }
 
+// TODO WINDOWS. This can be factored out I believe (JJH 2/18)
 func (container *Container) getNetworkedContainer() (*Container, error) {
 	parts := strings.SplitN(string(container.hostConfig.NetworkMode), ":", 2)
 	switch parts[0] {

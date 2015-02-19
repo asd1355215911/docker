@@ -3,7 +3,6 @@
 package windowsgraphdriver
 
 import (
-	"fmt"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
@@ -42,9 +41,7 @@ func (a *Driver) Status() [][2]string {
 
 	log.Debugln("WindowsGraphDriver Status()")
 	return [][2]string{
-		{"Root Dir", "Not implemented"},
-		{"Backing Filesystem", "Not implemented"},
-		{"Dirs", "Not implemented"},
+		{"Windows", "To be confirmed what should be returned by Windows Storage Driver"},
 	}
 }
 

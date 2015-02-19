@@ -46,9 +46,6 @@ func (container *Container) Start() (err error) {
 	if err := container.Mount(); err != nil {
 		return err
 	}
-	if err := container.prepareVolumes(); err != nil {
-		return err
-	}
 	linkedEnv, err := container.setupLinkedContainers()
 	if err != nil {
 		return err
@@ -74,5 +71,11 @@ func (container *Container) AllocateNetwork() error {
 
 // No-op on Windows. TODO Windows. Factor this out
 func (container *Container) RestoreNetwork() error {
+	return nil
+}
+
+// TODO WINDOWS
+// This can be totally factored out but currently also used in create.go
+func (container *Container) prepareVolumes() error {
 	return nil
 }

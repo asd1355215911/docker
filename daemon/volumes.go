@@ -38,15 +38,6 @@ func (mnt *Mount) Export(resource string) (io.ReadCloser, error) {
 	return mnt.volume.Export(path, name)
 }
 
-func (container *Container) prepareVolumes() error {
-	if container.Volumes == nil || len(container.Volumes) == 0 {
-		container.Volumes = make(map[string]string)
-		container.VolumesRW = make(map[string]bool)
-	}
-
-	return container.createVolumes()
-}
-
 // sortedVolumeMounts returns the list of container volume mount points sorted in lexicographic order
 func (container *Container) sortedVolumeMounts() []string {
 	var mountPaths []string

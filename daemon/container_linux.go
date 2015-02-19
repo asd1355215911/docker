@@ -13,6 +13,15 @@ import (
 	"github.com/docker/docker/utils"
 )
 
+func (container *Container) prepareVolumes() error {
+	if container.Volumes == nil || len(container.Volumes) == 0 {
+		container.Volumes = make(map[string]string)
+		container.VolumesRW = make(map[string]bool)
+	}
+
+	return container.createVolumes()
+}
+
 func (container *Container) Kill() error {
 	if !container.IsRunning() {
 		return nil

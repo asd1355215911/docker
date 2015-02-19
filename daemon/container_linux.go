@@ -516,3 +516,30 @@ func (container *Container) setupWorkingDirectory() error {
 	}
 	return nil
 }
+
+func (container *Container) createDaemonEnvironment(linkedEnv []string) []string {
+	// if a domain name was specified, append it to the hostname (see #7851)
+	fullHostname := container.Config.Hostname
+	if container.Config.Domainname != "" {
+		fullHostname = fmt.Sprintf("%s.%s", fullHostname, container.Config.Domainname)
+	}
+	// Setup environment
+	env := []string{
+		"PATH=" + DefaultPathEnv,
+		"HOSTNAME=" + fullHostname,
+		// Note: we don't set HOME here because it'll get autoset intelligently
+		// based on the value of USER inside dockerinit, but only if it isn't
+		// set already (ie, that can be overridden by setting HOME via -e or ENV
+		// in a Dockerfile).
+	}
+	if container.Config.Tty {
+		env = append(env, "TERM=xterm")
+	}
+	env = append(env, linkedEnv...)
+	// because the env on the container can override certain default values
+	// we need to replace the 'env' keys where they match and append anything
+	// else.
+	env = utils.ReplaceOrAppendEnvValues(env, container.Config.Env)
+
+	return env
+}

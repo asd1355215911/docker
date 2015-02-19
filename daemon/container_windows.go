@@ -47,14 +47,14 @@ func (container *Container) Start() (err error) {
 	if err := container.Mount(); err != nil {
 		return err
 	}
-	linkedEnv, err := container.setupLinkedContainers()
+	//	linkedEnv, err := container.setupLinkedContainers()
 	if err != nil {
 		return err
 	}
-	env := container.createDaemonEnvironment(linkedEnv)
-	if err := populateCommand(container, env); err != nil {
-		return err
-	}
+
+	//	if err := populateCommand(container, env); err != nil {
+	//		return err
+	//	}
 	if err := container.setupMounts(); err != nil {
 		return err
 	}

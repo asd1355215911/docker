@@ -13,12 +13,7 @@
 package sqlite
 
 /*
-//JJH This is a complete hack. Changing from -->#cgo LDFLAGS: -lsqlite3
-#cgo LDFLAGS: -L . -lsqlite3
-//JJH And adding this
-#cgo CFLAGS: -I .
-//JJH sqllite.dll (64-bit windows) and sqllite.h put in local directory.
-
+#cgo LDFLAGS: -lsqlite3
 // JJHThese are interesting. Found some links on internet. Not sure if work or needed.
 //#cgo windows/386 CFLAGS: -I. -fno-stack-check -fno-stack-protector -mno-stack-arg-probe
 //#cgo windows/386 LDFLAGS: -lmingwex -lmingw32

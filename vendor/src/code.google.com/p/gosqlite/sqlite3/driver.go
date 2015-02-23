@@ -14,12 +14,7 @@ package sqlite
 
 /*
 #cgo LDFLAGS: -lsqlite3
-// JJHThese are interesting. Found some links on internet. Not sure if work or needed.
-//#cgo windows/386 CFLAGS: -I. -fno-stack-check -fno-stack-protector -mno-stack-arg-probe
-//#cgo windows/386 LDFLAGS: -lmingwex -lmingw32
-//#cgo windows/amd64 CFLAGS: -I. -fno-stack-check -fno-stack-protector -mno-stack-arg-probe
-//#cgo windows/amd64 LDFLAGS: -lmingwex -lmingw32  -lgcc_s
-//#cgo LDFLAGS: -lsqlite3
+
 #include <sqlite3.h>
 #include <stdlib.h>
 

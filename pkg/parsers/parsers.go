@@ -2,6 +2,7 @@ package parsers
 
 import (
 	"fmt"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -10,7 +11,13 @@ import (
 func ParseHost(defaultTCPAddr, defaultUnixAddr, addr string) (string, error) {
 	addr = strings.TrimSpace(addr)
 	if addr == "" {
-		addr = fmt.Sprintf("unix://%s", defaultUnixAddr)
+		if runtime.GOOS != "windows" {
+			// TODO Windows. Think there might be a bug here and unix:// prefix might be in there
+			// already. It is for Windows.
+			addr = fmt.Sprintf("unix://%s", defaultUnixAddr)
+		} else {
+			addr = fmt.Sprintf("%s", defaultTCPAddr) // Already contains tcp://
+		}
 	}
 	addrParts := strings.Split(addr, "://")
 	if len(addrParts) == 1 {
@@ -30,6 +37,9 @@ func ParseHost(defaultTCPAddr, defaultUnixAddr, addr string) (string, error) {
 }
 
 func ParseUnixAddr(addr string, defaultAddr string) (string, error) {
+	if runtime.GOOS == "windows" {
+		return "", fmt.Errorf("Windows does not support unix:// addresses")
+	}
 	addr = strings.TrimPrefix(addr, "unix://")
 	if strings.Contains(addr, "://") {
 		return "", fmt.Errorf("Invalid proto, expected unix: %s", addr)

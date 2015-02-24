@@ -741,3 +741,15 @@ func (container *Container) GetSize() (int64, int64) {
 	}
 	return sizeRw, sizeRootfs
 }
+
+func (container *Container) getIpcContainer() (*Container, error) {
+	containerID := container.hostConfig.IpcMode.Container()
+	c, err := container.daemon.Get(containerID)
+	if err != nil {
+		return nil, err
+	}
+	if !c.IsRunning() {
+		return nil, fmt.Errorf("cannot join IPC of a non running container: %s", containerID)
+	}
+	return c, nil
+}

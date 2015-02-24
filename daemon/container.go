@@ -635,19 +635,6 @@ func (container *Container) GetMountLabel() string {
 }
 
 // TODO WINDOWS. This can be factored out I believe (JJH 2/18)
-func (container *Container) getIpcContainer() (*Container, error) {
-	containerID := container.hostConfig.IpcMode.Container()
-	c, err := container.daemon.Get(containerID)
-	if err != nil {
-		return nil, err
-	}
-	if !c.IsRunning() {
-		return nil, fmt.Errorf("cannot join IPC of a non running container: %s", containerID)
-	}
-	return c, nil
-}
-
-// TODO WINDOWS. This can be factored out I believe (JJH 2/18)
 func (container *Container) getNetworkedContainer() (*Container, error) {
 	parts := strings.SplitN(string(container.hostConfig.NetworkMode), ":", 2)
 	switch parts[0] {

@@ -1,10 +1,12 @@
 package daemon
 
 import (
-	"github.com/docker/docker/opts"
-	flag "github.com/docker/docker/pkg/mflag"
 	"net"
 	"os"
+
+	"github.com/docker/docker/opts"
+	flag "github.com/docker/docker/pkg/mflag"
+	"github.com/docker/docker/pkg/networkfs/etchosts"
 )
 
 // Config define the configuration of a docker daemon
@@ -71,4 +73,54 @@ func (config *Config) InstallFlags() {
 	opts.IPListVar(&config.Dns, []string{"#dns", "-dns"}, "DNS server to use")
 	opts.DnsSearchListVar(&config.DnsSearch, []string{"-dns-search"}, "DNS search domains to use")
 	opts.LabelListVar(&config.Labels, []string{"-label"}, "Set key=value labels to the daemon")
+}
+
+func (container *Container) buildHostnameFile() error {
+	hostnamePath, err := container.getRootResourcePath("hostname")
+	if err != nil {
+		return err
+	}
+	container.HostnamePath = hostnamePath
+
+	if container.Config.Domainname != "" {
+		return ioutil.WriteFile(container.HostnamePath, []byte(fmt.Sprintf("%s.%s\n", container.Config.Hostname, container.Config.Domainname)), 0644)
+	}
+	return ioutil.WriteFile(container.HostnamePath, []byte(container.Config.Hostname+"\n"), 0644)
+}
+
+func (container *Container) buildHostsFiles(IP string) error {
+
+	hostsPath, err := container.getRootResourcePath("hosts")
+	if err != nil {
+		return err
+	}
+	container.HostsPath = hostsPath
+
+	var extraContent []etchosts.Record
+
+	children, err := container.daemon.Children(container.Name)
+	if err != nil {
+		return err
+	}
+
+	for linkAlias, child := range children {
+		_, alias := path.Split(linkAlias)
+		extraContent = append(extraContent, etchosts.Record{Hosts: alias, IP: child.NetworkSettings.IPAddress})
+	}
+
+	for _, extraHost := range container.hostConfig.ExtraHosts {
+		// allow IPv6 addresses in extra hosts; only split on first ":"
+		parts := strings.SplitN(extraHost, ":", 2)
+		extraContent = append(extraContent, etchosts.Record{Hosts: parts[0], IP: parts[1]})
+	}
+
+	return etchosts.Build(container.HostsPath, IP, container.Config.Hostname, container.Config.Domainname, extraContent)
+}
+
+func (container *Container) buildHostnameAndHostsFiles(IP string) error {
+	if err := container.buildHostnameFile(); err != nil {
+		return err
+	}
+
+	return container.buildHostsFiles(IP)
 }
